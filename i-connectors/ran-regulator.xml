@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:camel="http://camel.apache.org/schema/spring"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+          http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+          http://camel.apache.org/schema/spring
+          http://camel.apache.org/schema/spring/camel-spring.xsd">
+
+	<camel:sslContextParameters id="sslContext" certAlias="1.0.1">
+		<camel:keyManagers keyPassword="password">
+			<camel:keyStore resource="etc/ran-regulator.p12"
+				password="password" />
+		</camel:keyManagers>
+		<camel:trustManagers>
+			<camel:keyStore resource="etc/truststore.p12"
+				password="password" />
+		</camel:trustManagers>
+	</camel:sslContextParameters>
+
+    <bean id="ArtifactRequestProcessor" class="de.fhg.aisec.ids.camel.idscp2.processors.ArtifactRequestProcessor" />
+    <bean id="ContractRequestProcessor" class="de.fhg.aisec.ids.camel.idscp2.processors.ContractRequestProcessor"/>
+    <bean id="ContractAgreementReceiverProcessor" class="de.fhg.aisec.ids.camel.idscp2.processors.ContractAgreementReceiverProcessor"/>
+    <bean id="TypeExtractionProcessor" class="de.fhg.aisec.ids.camel.idscp2.processors.IdsMessageTypeExtractionProcessor" />
+	
+	<camelContext
+		xmlns="http://camel.apache.org/schema/spring">
+
+		<route id="recommendations">
+			<from
+				uri="timer://tenSecondsTimer?fixedRate=true&amp;period=30000&amp;delay=10000" />
+
+			<log message="Computing recommendations for csp-mno-1..." />
+			<to uri="http://regulator-recommendations:9901?awaitResponse=true" />
+
+            <setBody>
+                <simple>${bodyAs(String)}</simple>
+            </setBody>
+
+			<log
+				message="Sending recommendations data to all connected MNO's: ${body}" />
+			<to
+				uri="idscp2server://0.0.0.0:29292?sslContextParameters=#sslContext" />
+
+			<!-- Set body to null after data transfer-->
+			<setBody>
+				<simple>${null}</simple>
+			</setBody>
+		</route>
+
+        <route id="usage-data">
+            <from uri="idscp2server://0.0.0.0:29292?sslContextParameters=#sslContext"/>
+            <log message="Regulator - Received usage data: ${body}"/>
+            
+			<log message="Regulator - processing the usage data..." />
+            <log message="Regulator - Proecssing complete."/>
+        </route>
+
+	</camelContext>
+
+</beans>

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:camel="http://camel.apache.org/schema/spring"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+          http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+          http://camel.apache.org/schema/spring
+          http://camel.apache.org/schema/spring/camel-spring.xsd">
+
+	<camel:sslContextParameters id="sslContext" certAlias="1.0.1">
+		<camel:keyManagers keyPassword="password">
+			<camel:keyStore resource="etc/csp-mno-2.p12"
+				password="password" />
+		</camel:keyManagers>
+		<camel:trustManagers>
+			<camel:keyStore resource="etc/truststore.p12"
+				password="password" />
+		</camel:trustManagers>
+	</camel:sslContextParameters>
+	
+	<camelContext
+		xmlns="http://camel.apache.org/schema/spring">
+
+		<route id="usage-data">
+			<from
+				uri="timer://tenSecondsTimer?fixedRate=true&amp;period=30000&amp;delay=10000" />
+
+			<log message="Getting performance data..." />
+			<to uri="http://mno2-performance:9001?awaitResponse=true" />
+
+            <setBody>
+                <simple>${bodyAs(String)}</simple>
+            </setBody>
+			<log
+				message="csp-mno-2 - Sending performance data to regulator: ${body}" />
+			<to
+				uri="idscp2client://ran-regulator:29292?awaitResponse=true&amp;sslContextParameters=#sslContext" />
+			<log
+				message="csp-mno-2 - Performance data sent successfully" />
+			<!-- Set body to null after data transfer-->
+			<setBody>
+				<simple>${null}</simple>
+			</setBody>
+		</route>
+
+        <route id="recommendations">
+        	<!-- Wait for recommendation from regulator and apply the it. -->
+            <from uri="idscp2client://ran-regulator:29292?sslContextParameters=#sslContext"/>
+            <log message="csp-mno-2 - Received recommendation: ${body}"/>
+            <log message="csp-mno-2 - Recommendations applied"/>
+			<!-- Set body to null after data transfer-->
+			<removeHeader headerName="idscp2-header"/>
+			<setBody>
+				<simple>${null}</simple>
+			</setBody>
+            
+        </route>
+
+	</camelContext>
+
+</beans>

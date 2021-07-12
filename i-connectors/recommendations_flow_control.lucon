@@ -1,0 +1,7 @@
+flow_rule {
+	id demo
+	description "Allow only public messages"
+	when {endpoint "" }
+	receives { public}
+	decide allow
+}
