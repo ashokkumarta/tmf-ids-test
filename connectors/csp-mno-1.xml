@@ -23,7 +23,7 @@
 
 		<route id="usage-data">
 			<from
-				uri="timer://tenSecondsTimer?fixedRate=true&amp;period=300000&amp;delay=100000" />
+				uri="timer://usageDataTimer?fixedRate=true&amp;period=30000&amp;delay=10000" />
 
 			<log message="Getting performance data..." />
 			<to uri="http://mno1-performance:9001?awaitResponse=true" />

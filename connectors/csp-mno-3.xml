@@ -23,7 +23,7 @@
 
 		<route id="usage-data">
 			<from
-				uri="timer://tenSecondsTimer?fixedRate=true&amp;period=30000&amp;delay=10000" />
+				uri="timer://usageDataTimer?fixedRate=true&amp;period=30000&amp;delay=10000" />
 
 			<log message="Getting performance data..." />
 			<to uri="http://mno3-performance:9001?awaitResponse=true" />
@@ -47,7 +47,19 @@
         	<!-- Wait for recommendation from regulator and apply the it. -->
             <from uri="idscp2client://ran-regulator:29292?sslContextParameters=#sslContext"/>
             <log message="csp-mno-3 - Received recommendation: ${body}"/>
-            <log message="csp-mno-3 - Recommendations applied"/>
+        	<!-- Process the recommendation -->
+			<log message="csp-mno-3 - Processing the recommendation received..." />
+			<setHeader name="CamelHttpMethod">
+				<constant>POST</constant>
+			</setHeader>
+            <setHeader name="content-type">
+                <simple>text/plain</simple>
+            </setHeader>
+			<to uri="http://mno2-recommendation-processor:9191?awaitResponse=true" />
+            <log message="csp-mno-3 - Proecssing complete."/>
+            
+            
+            <log message="csp-mno-3 - Recommendations applied successfully"/>
 			<!-- Set body to null after data transfer-->
 			<removeHeader headerName="idscp2-header"/>
 			<setBody>

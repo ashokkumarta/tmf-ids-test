@@ -26,6 +26,12 @@ services:
     networks:
       - ids-local
 
+  mno2-recommendation-processor:
+    image: ashokkumarta/recommendations-processor-app:12.7.21
+    pull_policy: always
+    networks:
+      - ids-local
+
 networks:
   ids-local:
     driver: bridge
