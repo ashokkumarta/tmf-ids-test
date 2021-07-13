@@ -1,0 +1,37 @@
+version: '3.7'
+services:
+
+  # The core platform, mounts docker control socket and route definition into the image
+  csp-mno-1:
+    image: ashokkumarta/ids-trusted-connector
+    tty: true
+    stdin_open: true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ../deploy/allow-all-flows.pl:/root/deploy/allow-all-flows.pl
+      - ../etc/settings1.mapdb:/root/etc/settings.mapdb
+      - ../etc/csp-mno-1.p12:/root/etc/csp-mno-1.p12
+      - ../etc/truststore.p12:/root/etc/truststore.p12
+      - ./csp-mno-1.xml:/root/deploy/csp-mno-1.xml
+    # Enable this port mappings for debugging or UI access from localhost
+    ports:
+      - "8081:8080"
+    networks:
+      - ids-local
+
+  mno1-performance:
+    image: ashokkumarta/mno1-sharing-agent-app
+    networks:
+      - ids-local
+
+  mno1-recommendation-processor:
+    image: ashokkumarta/recommendations-processor-app@sha256:e39fcddf146f658d3fed8962d26152260356518e19a8665efa57afd2e50ab047
+    ports:
+      - "9191:9191"
+    networks:
+      - ids-local
+
+networks:
+  ids-local:
+    driver: bridge
+    

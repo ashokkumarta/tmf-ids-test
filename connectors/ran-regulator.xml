@@ -30,7 +30,7 @@
 			<from
 				uri="timer://tenSecondsTimer?fixedRate=true&amp;period=30000&amp;delay=10000" />
 
-			<log message="Computing recommendations for csp-mno-1..." />
+			<log message="Computing recommendations for MNO's..." />
 			<to uri="http://regulator-recommendations:9901?awaitResponse=true" />
 
             <setBody>

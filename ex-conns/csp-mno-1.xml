@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:camel="http://camel.apache.org/schema/spring"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+          http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+          http://camel.apache.org/schema/spring
+          http://camel.apache.org/schema/spring/camel-spring.xsd">
+
+	<camel:sslContextParameters id="sslContext"
+		certAlias="1.0.1">
+		<camel:keyManagers keyPassword="password">
+			<camel:keyStore resource="etc/csp-mno-1.p12"
+				password="password" />
+		</camel:keyManagers>
+		<camel:trustManagers>
+			<camel:keyStore resource="etc/truststore.p12"
+				password="password" />
+		</camel:trustManagers>
+	</camel:sslContextParameters>
+
+	<bean id="ArtifactRequestCreationProcessor"
+		class="de.fhg.aisec.ids.camel.idscp2.processors.ArtifactRequestCreationProcessor" />
+	<bean id="ContractRequestCreationProcessor"
+		class="de.fhg.aisec.ids.camel.idscp2.processors.ContractRequestCreationProcessor" />
+	<bean id="ContractResponseProcessor"
+		class="de.fhg.aisec.ids.camel.idscp2.processors.ContractResponseProcessor" />
+	<bean id="TypeExtractionProcessor"
+		class="de.fhg.aisec.ids.camel.idscp2.processors.IdsMessageTypeExtractionProcessor" />
+
+	<camelContext
+		xmlns="http://camel.apache.org/schema/spring">
+
+		<route id="usage-data">
+			<from
+				uri="timer://usageDataTimer?fixedRate=true&amp;period=3000000&amp;delay=1000000" />
+
+			<log message="Getting performance data..." />
+			<to uri="http://mno1-performance:9001?awaitResponse=true" />
+
+			<setBody>
+				<simple>${bodyAs(String)}</simple>
+			</setBody>
+			<log
+				message="csp-mno-1 - Sending performance data to regulator: ${body}" />
+			<to
+				uri="idscp2client://ran-regulator:29291?awaitResponse=true&amp;sslContextParameters=#sslContext" />
+			<log message="csp-mno-1 - Performance data sent successfully" />
+			<!-- Set body to null after data transfer -->
+			<setBody>
+				<simple>${null}</simple>
+			</setBody>
+		</route>
+
+		<route id="recommendations">
+			<from uri="timer://contractRequest?repeatCount=1" />
+			<!-- Wait for recommendation from regulator -->
+
+			<setProperty name="artifactUri">
+				<constant>https://example.com/some_artifact</constant>
+			</setProperty>
+			<process ref="ContractRequestCreationProcessor" />
+			<to
+				uri="idscp2client://ran-regulator:29292?awaitResponse=true&amp;connectionShareId=ucConnection&amp;sslContextParameters=#sslContext&amp;useIdsMessages=true" />
+			<process ref="TypeExtractionProcessor" />
+			<choice>
+				<when>
+					<simple>${exchangeProperty.ids-type} == 'ContractResponseMessage'</simple>
+					<log message="### Handle ContractResponseMessage ###" />
+					<process ref="ContractResponseProcessor" />
+					<to
+						uri="idscp2client://ran-regulator:29292?connectionShareId=ucConnection&amp;sslContextParameters=#sslContext&amp;useIdsMessages=true" />
+				</when>
+				<otherwise>
+					<log loggingLevel="ERROR"
+						message="Expected ContractResponseMessage, but received:\n${body}\n### Header: ###\n${headers[idscp2-header]}" />
+					<removeHeader headerName="idscp2-header" />
+					<setBody>
+						<simple>${null}</simple>
+					</setBody>
+				</otherwise>
+			</choice>
+
+			<!-- <setBody> <simple>recommendationRequest</simple> </setBody> <to uri="idscp2client://ran-regulator:29292?awaitResponse=true&amp;sslContextParameters=#sslContext"/> 
+				<log message="csp-mno-1 - Received recommendation: ${body}"/> <log message="csp-mno-1 
+				- Processing the recommendation received..." /> <setHeader name="CamelHttpMethod"> 
+				<constant>POST</constant> </setHeader> <setHeader name="content-type"> <simple>text/plain</simple> 
+				</setHeader> <to uri="http://mno1-recommendation-processor:9191?awaitResponse=true" 
+				/> <log message="csp-mno-1 - Proecssing complete."/> <log message="csp-mno-1 
+				- Recommendations applied successfully"/> <removeHeader headerName="idscp2-header"/> 
+				<setBody> <simple>${null}</simple> </setBody> -->
+
+		</route>
+
+
+		<route>
+			<from
+				uri="timer://tenSecondsTimer?fixedRate=true&amp;period=10000&amp;delay=10000" />
+			<setProperty name="artifactUri">
+				<constant>https://example.com/some_artifact</constant>
+			</setProperty>
+			<process ref="ArtifactRequestCreationProcessor" />
+			<to
+				uri="idscp2client://ran-regulator:29292?awaitResponse=true&amp;connectionShareId=ucConnection&amp;sslContextParameters=#sslContext&amp;useIdsMessages=true" />
+			<process ref="TypeExtractionProcessor" />
+			<choice>
+				<when>
+					<simple>${exchangeProperty.ids-type} == 'ArtifactResponseMessage'</simple>
+					<log message="### Handle ArtifactResponseMessage ###" />
+					<setHeader name="CamelHttpMethod">
+						<constant>POST</constant>
+					</setHeader>
+					<setHeader name="content-type">
+						<simple>text/plain</simple>
+					</setHeader>
+					<to uri="http://mno1-recommendation-processor:9191" />
+					<log message="Response body\n\n${body}" />
+				</when>
+				<otherwise>
+					<log loggingLevel="ERROR"
+						message="Expected ArtifactResponseMessage, but received:\n${body}\n### Header: ###\n${headers[idscp2-header]}" />
+				</otherwise>
+			</choice>
+		</route>
+
+	</camelContext>
+
+</beans>
