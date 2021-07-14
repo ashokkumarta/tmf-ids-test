@@ -1,0 +1,97 @@
+Basics, Well-Architected Framework and S3
+IAM
+EC2
+Storage
+Databases
+Networking
+Migrations
+Streaming data
+Scaling and SSL
+Decoupled applications
+Data processing
+Multiple accounts
+Business apps
+Deployments
+Security
+Backups and high availability
+
+HTTPBasicAuth
+
+
+
+
+Urbackup
+Open-source network backup
+This application web interface is exposed on the port 55414 inside the container.
+
+
+
+mvnw clean package -Dmaven.test.skip
+
+v4.3.0
+
+git checkout tags/v4.3.0 -b work
+
+
+mvnw clean package
+
+
+docker run -p 11101:11101 ashokkumarta/infosys-ids:dataapps-sample
+docker run -p 11102:11102 ashokkumarta/infosys-ids:test_provider
+docker run -p 11103:11103 ashokkumarta/infosys-ids:test_consumer
+
+mvnw clean package
+
+docker build -t ashokkumarta/infosys-ids:dataapps-sample .
+docker push ashokkumarta/infosys-ids:dataapps-sample
+
+cd ..\infosys-ids-test-dataapps\infosys-ids-test-provider
+docker build -t ashokkumarta/infosys-ids:test_provider .
+docker push ashokkumarta/infosys-ids:test_provider
+
+cd ..\infosys-ids-test-consumer
+docker build -t ashokkumarta/infosys-ids:test_consumer .
+docker push ashokkumarta/infosys-ids:test_consumer
+
+cd ..\infosys-ids-test-processor
+docker build -t ashokkumarta/infosys-ids:test_processor .
+docker push ashokkumarta/infosys-ids:test_processor
+
+cd ..\infosys-ids-test-generic
+docker build -t ashokkumarta/infosys-ids:test_generic .
+docker push ashokkumarta/infosys-ids:test_generic
+
+cd ..\infosys-ids-test-auditor
+docker build -t ashokkumarta/infosys-ids:test_auditor .
+docker push ashokkumarta/infosys-ids:test_auditor
+
+cd ..\infosys-ids-test-encryptor
+docker build -t ashokkumarta/infosys-ids:test_encryptor .
+docker push ashokkumarta/infosys-ids:test_encryptor
+
+cd ..\infosys-ids-test-validator
+docker build -t ashokkumarta/infosys-ids:test_validator .
+docker push ashokkumarta/infosys-ids:test_validator
+
+
+docker push ashokkumarta/infosys-ids:trusted-connector
+
+docker run ashokkumarta/infosys-ids:trusted-connector
+
+
+https://raw.githubusercontent.com/ashokkumarta/infosys-ids-dataapps-sample/main/ref/test-apps.json
+
+
+java -jar Sample-0.0.1-SNAPSHOT.jar --spring.config.location=file:///D:/Ashok/Work/Infosys/TMF/IDS/git/test-apps/infosys-ids-test-provider/src/main/resources/application.properties
+
+D:/Ashok/Work/Infosys/TMF/IDS/git/test-apps/infosys-ids-test-provider/src/main/resources
+
+
+
+
+docker pull ashokkumarta/infosys-ids:test_consumer
+
+Exchange.CONTENT_TYPE
+
+sudo docker run -itd --name containerX --net tmf-flow-dist_ids-dist busybox
+
