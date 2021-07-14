@@ -10,7 +10,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ../deploy/allow-all-flows.pl:/root/deploy/allow-all-flows.pl
-      - ../etc/settings.mapdb:/root/etc/settings.mapdb
+      - ../etc/settings-ran-regulator.mapdb:/root/etc/settings.mapdb
       - ../etc/ran-regulator.p12:/root/etc/ran-regulator.p12
       - ../etc/truststore.p12:/root/etc/truststore.p12
       - ./ran-regulator.xml:/root/deploy/ran-regulator.xml

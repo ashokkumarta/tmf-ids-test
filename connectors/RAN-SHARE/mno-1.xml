@@ -9,7 +9,7 @@
 
 	<camel:sslContextParameters id="sslContext" certAlias="1.0.1">
 		<camel:keyManagers keyPassword="password">
-			<camel:keyStore resource="etc/csp-mno-2.p12"
+			<camel:keyStore resource="etc/mno-1.p12"
 				password="password" />
 		</camel:keyManagers>
 		<camel:trustManagers>
@@ -26,17 +26,17 @@
 				uri="timer://usageDataTimer?fixedRate=true&amp;period=30000&amp;delay=10000" />
 
 			<log message="Getting performance data..." />
-			<to uri="http://mno2-performance:9001?awaitResponse=true" />
+			<to uri="http://mno1-performance:9001?awaitResponse=true" />
 
             <setBody>
                 <simple>${bodyAs(String)}</simple>
             </setBody>
 			<log
-				message="csp-mno-2 - Sending performance data to regulator: ${body}" />
+				message="MNO-1 - Sending performance data to regulator: ${body}" />
 			<to
 				uri="idscp2client://ran-regulator:29292?awaitResponse=true&amp;sslContextParameters=#sslContext" />
 			<log
-				message="csp-mno-2 - Performance data sent successfully" />
+				message="MNO-1 - Performance data sent successfully" />
 			<!-- Set body to null after data transfer-->
 			<setBody>
 				<simple>${null}</simple>
@@ -44,22 +44,23 @@
 		</route>
 
         <route id="recommendations">
-        	<!-- Wait for recommendation from regulator and apply the it. -->
+        	<!-- Wait for recommendation from regulator -->
             <from uri="idscp2client://ran-regulator:29292?sslContextParameters=#sslContext"/>
-            <log message="csp-mno-2 - Received recommendation: ${body}"/>
+            <log message="MNO-1 - Received recommendation: ${body}"/>
+
         	<!-- Process the recommendation -->
-			<log message="csp-mno-2 - Processing the recommendation received..." />
+			<log message="MNO-1 - Processing the recommendation received..." />
 			<setHeader name="CamelHttpMethod">
 				<constant>POST</constant>
 			</setHeader>
             <setHeader name="content-type">
                 <simple>text/plain</simple>
             </setHeader>
-			<to uri="http://mno2-recommendation-processor:9191?awaitResponse=true" />
-            <log message="csp-mno-2 - Proecssing complete."/>
+			<to uri="http://mno1-recommendation-processor:9191?awaitResponse=true" />
+            <log message="MNO-1 - Proecssing complete."/>
             
             
-            <log message="csp-mno-2 - Recommendations applied successfully"/>
+            <log message="MNO-1 - Recommendations applied successfully"/>
 			<!-- Set body to null after data transfer-->
 			<removeHeader headerName="idscp2-header"/>
 			<setBody>
