@@ -80,6 +80,7 @@
 					</setBody>
 				</otherwise>
 			</choice>
+			<log message="### CONNECTION ESTABILISHED WITH REGULATOR ###" />
 
 			<!-- <setBody> <simple>recommendationRequest</simple> </setBody> <to uri="idscp2client://ran-regulator:29292?awaitResponse=true&amp;sslContextParameters=#sslContext"/> 
 				<log message="csp-mno-1 - Received recommendation: ${body}"/> <log message="csp-mno-1 
@@ -95,7 +96,7 @@
 
 		<route>
 			<from
-				uri="timer://tenSecondsTimer?fixedRate=true&amp;period=10000&amp;delay=10000" />
+				uri="timer://tenSecondsTimer?fixedRate=true&amp;period=10000&amp;delay=30000" />
 			<setProperty name="artifactUri">
 				<constant>https://example.com/some_artifact</constant>
 			</setProperty>
@@ -113,7 +114,8 @@
 					<setHeader name="content-type">
 						<simple>text/plain</simple>
 					</setHeader>
-					<to uri="http://mno1-recommendation-processor:9191" />
+					<to uri="http://echo-server:8080"/>
+					<!-- <to uri="http://mno1-recommendation-processor:9191" /> --> 
 					<log message="Response body\n\n${body}" />
 				</when>
 				<otherwise>

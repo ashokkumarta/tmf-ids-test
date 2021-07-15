@@ -22,9 +22,9 @@
 regex(A,B,C) :- class("java.util.regex.Pattern") <- matches(A,B) returns C.		
 %%%%%%%% Rules %%%%%%%%%%%%
 rule(demo).
-has_target(demo, service1193479412).
-service(service1193479412).
-has_endpoint(service1193479412,"").
+has_target(demo, service1215315111).
+service(service1215315111).
+has_endpoint(service1215315111,"").
 receives_label(demo,r.receivesLabels).
 has_decision(demo, allow).
 
