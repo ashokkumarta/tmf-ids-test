@@ -1,6 +1,5 @@
 version: '3.7'
 services:
-
   # The core platform, mounts docker control socket and route definition into the image
   mno-1:
     image: ashokkumarta/ids-trusted-connector
@@ -27,7 +26,7 @@ services:
       - ids-local
 
   mno1-recommendation-processor:
-    image: ashokkumarta/recommendations-processor-app:12.7.21
+    image: ashokkumarta/recommendations-processor-app:latest
     pull_policy: always
     networks:
       - ids-local

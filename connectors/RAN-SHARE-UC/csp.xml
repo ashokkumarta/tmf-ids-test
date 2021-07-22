@@ -65,7 +65,7 @@
 
 		<route id="usage-data">
 			<from
-				uri="timer://usageDataTimer?fixedRate=true&amp;period=30000&amp;delay=10000" />
+				uri="timer://usageDataTimer?fixedRate=true&amp;period=10000&amp;delay=10000" />
 
 			<log message="### USAGE DATA - Initiating Usage Data exchange ###" />
 			<setProperty name="artifactUri">
@@ -143,7 +143,7 @@
 
 		<route id="recommendations">
 			<from
-				uri="timer://recommendationsTimer?fixedRate=true&amp;period=60000&amp;delay=30000" />
+				uri="timer://recommendationsTimer?fixedRate=true&amp;period=30000&amp;delay=30000" />
 
 					<log message="RECOMMENDATOINS - Requesting for recommendations..." />
 			<setProperty name="artifactUri">
