@@ -19,23 +19,24 @@
 		</camel:trustManagers>
 	</camel:sslContextParameters>
 
-	<bean id="ArtifactRequestProcessor"
-		class="de.fhg.aisec.ids.camel.idscp2.processors.ArtifactRequestProcessor" />
+
+	<bean id="TMFArtifactResponseProcessor"
+		class="tmf.ids.processors.TMFArtifactResponseProcessor" />
 	<bean id="ContractRequestProcessor"
 		class="de.fhg.aisec.ids.camel.idscp2.processors.ContractRequestProcessor" />
 	<bean id="ContractAgreementReceiverProcessor"
 		class="de.fhg.aisec.ids.camel.idscp2.processors.ContractAgreementReceiverProcessor" />
 	<bean id="TypeExtractionProcessor"
 		class="de.fhg.aisec.ids.camel.idscp2.processors.IdsMessageTypeExtractionProcessor" />
-	<bean id="XArtifactRequestProcessor"
-		class="ashok.ids.processors.XArtifactRequestProcessor" />
 
 	<camelContext
 		xmlns="http://camel.apache.org/schema/spring">
 
-		<route id="recommendations">
+
+		<route id="recommendations_contract">
 			<from
 				uri="idscp2server://0.0.0.0:29292?sslContextParameters=#sslContext&amp;useIdsMessages=true" />
+
 			<process ref="TypeExtractionProcessor" />
 			<choice>
 				<when>
@@ -56,18 +57,7 @@
 						<simple>${null}</simple>
 					</setBody>
 				</when>
-				<when>
-					<simple>${exchangeProperty.ids-type} == 'ArtifactRequestMessage'</simple>
-					<log message="Computing recommendation..." />
-					<to
-						uri="http://regulator-recommendations:9901?awaitResponse=true" />
-					<setProperty name="PAY_LOAD">
-						<simple>${bodyAs(String)}</simple>
-					</setProperty>
-					<log message="### Handle ArtifactRequestMessage ###" />
-					<process ref="XArtifactRequestProcessor" />
-				</when>
-			<otherwise>
+				<otherwise>
 					<log loggingLevel="ERROR"
 						message="### Server received unexpected message (otherwise branch):\n${body}\n### Header: ###\n${headers[idscp2-header]}" />
 					<removeHeader headerName="idscp2-header" />
@@ -76,11 +66,31 @@
 					</setBody>
 				</otherwise>
 			</choice>
+		</route>
 
-			<!-- <log message="Consumer - Received from provider: ${body}" /> <log 
-				message="Computing recommendations..." /> <to uri="http://regulator-recommendations:9901?awaitResponse=true" 
-				/> <log message="Consumer - Processing data..." /> <log message="Sending 
-				recommendations data back" /> -->
+
+		<route id="recommendations">
+			<from
+				uri="timer://thirtySecondsTimer?fixedRate=true&amp;period=30000&amp;delay=30000" />
+
+			<log message="Computing recommendations for MNO's..." />
+			<to uri="http://regulator-recommendations:9901?awaitResponse=true" />
+
+            <setProperty name="tmf_content_pay_load">
+                <simple>${bodyAs(String)}</simple>
+            </setProperty>
+            
+			<process ref="TMFArtifactResponseProcessor" />
+
+			<log
+				message="Sending recommendations data to all connected MNO's: ${body}" />
+			<to
+				uri="idscp2server://0.0.0.0:29292?sslContextParameters=#sslContext&amp;useIdsMessages=true" />
+
+			<!-- Set body to null after data transfer -->
+			<setBody>
+				<simple>${null}</simple>
+			</setBody>
 		</route>
 
 		<route id="usage-data">
