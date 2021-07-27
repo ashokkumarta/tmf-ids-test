@@ -113,7 +113,7 @@
 
 		<route id="usage-data">
 			<from
-				uri="timer://usageDataTimer?fixedRate=true&amp;period=10000&amp;delay=10000" />
+				uri="timer://usageDataTimer?fixedRate=true&amp;period=10000&amp;delay=30000" />
 
 			<log
 				message="### USAGE DATA - Initiating Usage Data exchange ###" />
@@ -202,7 +202,7 @@
 
 		<route id="recommendations">
 			<from
-				uri="timer://recommendationsTimer?fixedRate=true&amp;period=30000&amp;delay=30000" />
+				uri="timer://recommendationsTimer?fixedRate=true&amp;period=25000&amp;delay=50000" />
 
 			<log
 				message="RECOMMENDATOINS - Requesting for recommendations..." />
