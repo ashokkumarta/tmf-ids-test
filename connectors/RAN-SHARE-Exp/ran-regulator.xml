@@ -79,7 +79,7 @@
 				</when>
 				<when>
 					<simple>${exchangeProperty.ids-type} == 'ArtifactResponseMessage'</simple>
-					<log message="USAGE DATA - Received usage data" />
+					<log message="USAGE DATA - Received usage data:\n${body}\n" />
 
 					<log message="USAGE DATA - Processing..." />
 
@@ -92,6 +92,8 @@
 					</setHeader>
 					<to
 						uri="http://usage-data-processor:9192?awaitResponse=true" />
+
+					<log message="USAGE DATA - Response from processing usage data: \n${body}" />
 					<log message="USAGE DATA - Proecssing complete." />
 
 					<!-- Set body to null after data transfer -->

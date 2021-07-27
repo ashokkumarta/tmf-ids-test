@@ -1,6 +1,5 @@
 version: '3.7'
 services:
-
   # The core platform, mounts docker control socket and route definition into the image
   ran-regulator:
     image: ashokkumarta/ids-trusted-connector

@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=ashokkumarta/dataapps-sample-any:latest
+ARG BASE_IMAGE=ashokkumarta/dataapps-sample:latest
 FROM $BASE_IMAGE
 LABEL AUTHOR="Ashokkumar T A"
 COPY ./application.properties /application.properties

@@ -69,7 +69,7 @@
 					<log
 						message="### USAGE DATA - Handling Contract Request Message ###" />
 					<setProperty name="containerUri">
-						<constant>https://hub.docker.com/layers/ashokkumarta/usage-data-processor-app/latest/images/sha256-1ccfcd637f70d44916a49e999f7686ad80c97c4752c554f20d6e97894278c133#9192</constant>
+						<constant>https://hub.docker.com/layers/ashokkumarta/usage-data-processor-app/latest/images/sha256-567e26eb23c20c313d0704a70fdb51751c53653e2abe1c3220ea67dd7cd10b37#9192</constant>
 					</setProperty>
 					<process ref="ContractRequestProcessor" />
 					<to
