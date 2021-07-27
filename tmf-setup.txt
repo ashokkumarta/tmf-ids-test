@@ -17,16 +17,18 @@ cd ..\regulator-recommendations-app
 docker image rm ashokkumarta/regulator-recommendations-app:latest
 docker build -t ashokkumarta/regulator-recommendations-app:latest .
 docker push ashokkumarta/regulator-recommendations-app:latest
-
 cd ..\recommendations-processor-app
 docker image rm ashokkumarta/recommendations-processor-app:12.7.21
 docker build -t ashokkumarta/recommendations-processor-app:12.7.21 .
 docker push ashokkumarta/recommendations-processor-app:12.7.21
-
 cd ..\recommendations-processor-app-latest
 docker image rm ashokkumarta/recommendations-processor-app:latest
 docker build -t ashokkumarta/recommendations-processor-app:latest .
 docker push ashokkumarta/recommendations-processor-app:latest
+cd ..\usage-data-processor-app
+docker image rm ashokkumarta/usage-data-processor-app:latest
+docker build -t ashokkumarta/usage-data-processor-app:latest .
+docker push ashokkumarta/usage-data-processor-app:latest
 cd ..
 
 

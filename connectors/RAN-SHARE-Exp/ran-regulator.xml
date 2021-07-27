@@ -29,6 +29,12 @@
 		class="de.fhg.aisec.ids.camel.idscp2.processors.IdsMessageTypeExtractionProcessor" />
 	<bean id="TMFArtifactResponseProcessor"
 		class="tmf.ids.processors.TMFArtifactResponseProcessor" />
+	<bean id="TMFArtifactInitProcessor"
+		class="tmf.ids.processors.TMFArtifactInitProcessor" />
+	<bean id="ContractRequestCreationProcessor"
+		class="de.fhg.aisec.ids.camel.idscp2.processors.ContractRequestCreationProcessor" />
+	<bean id="ContractResponseProcessor"
+		class="de.fhg.aisec.ids.camel.idscp2.processors.ContractResponseProcessor" />
 
 	<camelContext
 		xmlns="http://camel.apache.org/schema/spring">
@@ -40,41 +46,54 @@
 			<choice>
 				<when>
 					<simple>${exchangeProperty.ids-type} == 'ContractRequestMessage'</simple>
-					<log message="### USAGE DATA - Handling Contract Request Message ###" />
-					<setProperty name="containerUri">
-						<constant>https://hub.docker.com/layers/ashokkumarta/mno1-sharing-agent-app/latest/images/sha256:80c14efe453cf050db346228aa898184bcf6361a589af946a3d75b15b51190b4#9001</constant>
+					<log
+						message="### USAGE DATA - Received request to 'request for contract' ###" />
+					<setProperty name="artifactUri">
+						<constant>https://catalyst.tmf/ran-share/usage-data</constant>
 					</setProperty>
-					<process ref="ContractRequestProcessor" />
+					<process ref="TMFArtifactInitProcessor" />
+
+					<log
+						message="### USAGE DATA - Initiating Contract Request ###" />
+
+					<process ref="ContractRequestCreationProcessor" />
 				</when>
 				<when>
-					<simple>${exchangeProperty.ids-type} == 'ContractAgreementMessage'</simple>
-					<log message="### USAGE DATA - Handling Contract Agreement Message ###" />
-					<!-- Only processing of incoming request must be performed, no reply -->
-					<process ref="ContractAgreementReceiverProcessor" />
-					<removeHeader headerName="idscp2-header" />
-					<setBody>
-						<simple>${null}</simple>
-					</setBody>
+					<simple>${exchangeProperty.ids-type} == 'ContractResponseMessage'</simple>
+
+					<log message="### USAGE DATA - Handling Contract Response - ContractResponseMessage ###" />
+					<process ref="ContractResponseProcessor" />
 				</when>
 				<when>
 					<simple>${exchangeProperty.ids-type} == 'ArtifactRequestMessage'</simple>
 					<log
 						message="### USAGE DATA - Handling request to 'Request for Usage Data' ###" />
-					
+
 					<setProperty name="artifactUri">
 						<constant>https://catalyst.tmf/ran-share/usage-data</constant>
 					</setProperty>
 
 					<process ref="ArtifactRequestCreationProcessor" />
-
-					<log message="USAGE DATA - Sending request for usage data: ${body}" />
+					<log
+						message="USAGE DATA - Sending request for usage data" />
 				</when>
 				<when>
 					<simple>${exchangeProperty.ids-type} == 'ArtifactResponseMessage'</simple>
-                    <log message="USAGE DATA - Received usage data: \n\n${body}\n" />
+					<log message="USAGE DATA - Received usage data" />
 
 					<log message="USAGE DATA - Processing..." />
+
+
+					<setHeader name="CamelHttpMethod">
+						<constant>POST</constant>
+					</setHeader>
+					<setHeader name="content-type">
+						<simple>text/plain</simple>
+					</setHeader>
+					<to
+						uri="http://usage-data-processor:9192?awaitResponse=true" />
 					<log message="USAGE DATA - Proecssing complete." />
+
 					<!-- Set body to null after data transfer -->
 					<removeHeader headerName="idscp2-header" />
 					<setBody>
@@ -92,6 +111,8 @@
 			</choice>
 		</route>
 
+
+
 		<route id="recommendations-server">
 			<from
 				uri="idscp2server://0.0.0.0:29291?sslContextParameters=#sslContext&amp;useIdsMessages=true" />
@@ -99,15 +120,25 @@
 			<choice>
 				<when>
 					<simple>${exchangeProperty.ids-type} == 'ContractRequestMessage'</simple>
-					<log message="### RECOMMENDATIONS - Handling Contract Request Message ###" />
+
+					<log
+						message="### RECOMMENDATIONS - Initializing Recommendations artifact trust ###" />
+					<setProperty name="artifactUri">
+						<constant>https://catalyst.tmf/ran-share/recommendations</constant>
+					</setProperty>
+					<process ref="TMFArtifactInitProcessor" />
+
+					<log
+						message="### RECOMMENDATIONS - Handling Contract Request Message ###" />
 					<setProperty name="containerUri">
-						<constant>https://hub.docker.com/layers/ashokkumarta/recommendations-processor-app/latest/images/sha256:e39fcddf146f658d3fed8962d26152260356518e19a8665efa57afd2e50ab047#9191</constant>
+						<constant>https://hub.docker.com/layers/ashokkumarta/recommendations-processor-app/latest/images/sha256-9d64aba44f76c8d43ce215b391a0467fb13a171980896b45e26e25eae044fc82#9191</constant>
 					</setProperty>
 					<process ref="ContractRequestProcessor" />
 				</when>
 				<when>
 					<simple>${exchangeProperty.ids-type} == 'ContractAgreementMessage'</simple>
-					<log message="### RECOMMENDATIONS - Handling Contract Agreement Message ###" />
+					<log
+						message="### RECOMMENDATIONS - Handling Contract Agreement Message ###" />
 					<!-- Only processing of incoming request must be performed, no reply -->
 					<process ref="ContractAgreementReceiverProcessor" />
 					<removeHeader headerName="idscp2-header" />
@@ -118,13 +149,16 @@
 				<when>
 					<simple>${exchangeProperty.ids-type} == 'ArtifactRequestMessage'</simple>
 
-					<log message="RECOMMENDATIONS - Received request for recommendations..." />
-					
-					<log message="RECOMMENDATIONS - Invoking regulator-recommendations app to get recommendation..." />
+					<log
+						message="RECOMMENDATIONS - Received request for recommendations..." />
+
+					<log
+						message="RECOMMENDATIONS - Invoking regulator-recommendations app to get recommendation..." />
 					<to
 						uri="http://regulator-recommendations:9901?awaitResponse=true" />
 
-					<log message="RECOMMENDATIONS - Pushing recommendations as payload in IDS message ..." />
+					<log
+						message="RECOMMENDATIONS - Pushing recommendations as payload in IDS message ..." />
 					<setProperty name="tmf_content_pay_load">
 						<simple>${bodyAs(String)}</simple>
 					</setProperty>
@@ -136,7 +170,8 @@
 					<log message="RECOMMENDATIONS - Sending recommendation..." />
 					<process ref="TMFArtifactResponseProcessor" />
 
-					<log message="RECOMMENDATIONS - Recommendation sent successfully: ${body}" />
+					<log
+						message="RECOMMENDATIONS - Recommendation sent successfully: ${body}" />
 
 				</when>
 				<otherwise>
@@ -149,7 +184,6 @@
 				</otherwise>
 			</choice>
 		</route>
-
 
 	</camelContext>
 

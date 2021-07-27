@@ -3,7 +3,6 @@ services:
   # The core platform, mounts docker control socket and route definition into the image
   mno-1:
     image: ashokkumarta/ids-trusted-connector
-    pull_policy: always
     tty: true
     stdin_open: true
     volumes:
@@ -21,17 +20,15 @@ services:
 
   mno1-performance:
     image: ashokkumarta/mno1-sharing-agent-app
-    pull_policy: always
     networks:
       - ids-local
 
   mno1-recommendation-processor:
     image: ashokkumarta/recommendations-processor-app:latest
-    pull_policy: always
     networks:
       - ids-local
 
 networks:
   ids-local:
-    driver: bridge
+    driver: bridge    
     
