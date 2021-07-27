@@ -1,10 +1,8 @@
 version: '3.7'
 services:
-
   # The core platform, mounts docker control socket and route definition into the image
   csp:
     image: ashokkumarta/ids-trusted-connector
-    pull_policy: always
     tty: true
     stdin_open: true
     volumes:
@@ -22,13 +20,11 @@ services:
 
   csp-performance:
     image: ashokkumarta/csp-sharing-agent-app
-    pull_policy: always
     networks:
       - ids-local
 
   csp-recommendation-processor:
-    image: ashokkumarta/recommendations-processor-app:12.7.21
-    pull_policy: always
+    image: ashokkumarta/recommendations-processor-app:latest
     networks:
       - ids-local
 
