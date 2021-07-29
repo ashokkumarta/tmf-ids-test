@@ -1,0 +1,35 @@
+version: '3.7'
+services:
+  # The core platform, mounts docker control socket and route definition into the image
+  ran-regulator:
+    image: ashokkumarta/ids-trusted-connector
+    tty: true
+    stdin_open: true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ../deploy/drop-phone-no_policy.pl:/root/deploy/drop-phone-no_policy.pl
+      - ../deploy/allow-all-flows.pl:/root/deploy/zllow-all-flows.pl
+      - ../etc/settings-ran-regulator.mapdb:/root/etc/settings.mapdb
+      - ../etc/ran-regulator.p12:/root/etc/ran-regulator.p12
+      - ../etc/truststore.p12:/root/etc/truststore.p12
+      - ./ran-regulator.xml:/root/deploy/ran-regulator.xml
+    # Enable this port mappings for debugging or UI access from localhost
+    ports:
+      - "8080:8080"
+    networks:
+      - ids-local
+
+  regulator-recommendations:
+    image: ashokkumarta/regulator-recommendations-app
+    networks:
+      - ids-local
+
+  usage-data-processor:
+    image: ashokkumarta/usage-data-processor-app:latest
+    networks:
+      - ids-local
+
+networks:
+  ids-local:
+    driver: bridge
+    
