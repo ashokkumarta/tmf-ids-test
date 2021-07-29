@@ -133,7 +133,7 @@
 					<log
 						message="### RECOMMENDATIONS - Handling Contract Request Message ###" />
 					<setProperty name="containerUri">
-						<constant>https://hub.docker.com/layers/ashokkumarta/recommendations-processor-app/latest/images/sha256-9d64aba44f76c8d43ce215b391a0467fb13a171980896b45e26e25eae044fc82#9191</constant>
+						<constant>https://hub.docker.com/layers/ashokkumarta/recommendations-processor-app/latest/images/sha256-d6115f273383938e5be0ffa8fc9021c94ba4895e141b5d38c25121b26a2573d3#9191</constant>
 					</setProperty>
 					<process ref="ContractRequestProcessor" />
 				</when>
