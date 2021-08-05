@@ -33,5 +33,4 @@ networks:
   ids-local:
     driver: bridge    
   ids-dist:
-  	driver: overlay
-        
+    driver: overlay
