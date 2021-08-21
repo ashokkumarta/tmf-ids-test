@@ -28,6 +28,11 @@ services:
     networks:
       - ids-local
 
+  mno1-recommendation-response:
+    image: ashokkumarta/mno1-recommendations-feedback-app:latest
+    networks:
+      - ids-local
+
 networks:
   ids-local:
     driver: bridge    

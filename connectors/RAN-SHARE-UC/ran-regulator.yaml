@@ -23,6 +23,11 @@ services:
     networks:
       - ids-local
 
+  regulator-recommendations-incentive:
+    image: ashokkumarta/regulator-recommendations-incentive-app
+    networks:
+      - ids-local
+
   usage-data-processor:
     image: ashokkumarta/usage-data-processor-app:latest
     networks:

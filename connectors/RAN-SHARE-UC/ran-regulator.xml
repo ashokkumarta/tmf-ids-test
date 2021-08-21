@@ -187,6 +187,144 @@
 			</choice>
 		</route>
 
+
+		<route id="recommendation-response-server">
+			<from
+				uri="idscp2server://0.0.0.0:29293?sslContextParameters=#sslContext&amp;useIdsMessages=true" />
+			<process ref="TypeExtractionProcessor" />
+			<choice>
+				<when>
+					<simple>${exchangeProperty.ids-type} == 'ContractRequestMessage'</simple>
+					<log
+						message="### RECOMMENDATION RESPONSE - Received request to 'request for recommendation response contract' ###" />
+					<setProperty name="artifactUri">
+						<constant>https://catalyst.tmf/ran-share/recommendation-response</constant>
+					</setProperty>
+					<process ref="TMFArtifactInitProcessor" />
+
+					<log
+						message="### RECOMMENDATION RESPONSE - Initiating Contract Request ###" />
+
+					<process ref="ContractRequestCreationProcessor" />
+				</when>
+				<when>
+					<simple>${exchangeProperty.ids-type} == 'ContractResponseMessage'</simple>
+
+					<log message="### RECOMMENDATION RESPONSE - Handling Contract Response - ContractResponseMessage ###" />
+					<process ref="ContractResponseProcessor" />
+				</when>
+				<when>
+					<simple>${exchangeProperty.ids-type} == 'ArtifactRequestMessage'</simple>
+					<log
+						message="### RECOMMENDATION RESPONSE - Handling request to 'Request for recommendation response' ###" />
+
+					<setProperty name="artifactUri">
+						<constant>https://catalyst.tmf/ran-share/recommendation-response</constant>
+					</setProperty>
+
+					<process ref="ArtifactRequestCreationProcessor" />
+					<log
+						message="RECOMMENDATION RESPONSE - Sending request for recommendation response" />
+				</when>
+				<when>
+					<simple>${exchangeProperty.ids-type} == 'ArtifactResponseMessage'</simple>
+					<log message="RECOMMENDATION RESPONSE - Received recommendation response:\n${body}\n" />
+
+					<log message="RECOMMENDATION RESPONSE - Processing..." />
+
+					<log message="RECOMMENDATION RESPONSE - Proecssing complete." />
+
+					<!-- Set body to null after data transfer -->
+					<removeHeader headerName="idscp2-header" />
+					<setBody>
+						<simple>${null}</simple>
+					</setBody>
+				</when>
+				<otherwise>
+					<log loggingLevel="ERROR"
+						message="### RECOMMENDATION RESPONSE - Server received unexpected message (otherwise branch):\n${body}\n### Header: ###\n${headers[idscp2-header]}" />
+					<removeHeader headerName="idscp2-header" />
+					<setBody>
+						<simple>${null}</simple>
+					</setBody>
+				</otherwise>
+			</choice>
+		</route>
+
+		<route id="recommendation-incentive-server">
+			<from
+				uri="idscp2server://0.0.0.0:29294?sslContextParameters=#sslContext&amp;useIdsMessages=true" />
+			<process ref="TypeExtractionProcessor" />
+			<choice>
+				<when>
+					<simple>${exchangeProperty.ids-type} == 'ContractRequestMessage'</simple>
+
+					<log
+						message="### RECOMMENDATION INCENTIVE - Initializing Recommendation incentive artifact trust ###" />
+					<setProperty name="artifactUri">
+						<constant>https://catalyst.tmf/ran-share/recommendation-incentive</constant>
+					</setProperty>
+					<process ref="TMFArtifactInitProcessor" />
+
+					<log
+						message="### RECOMMENDATION INCENTIVE - Handling Contract Request Message ###" />
+					<setProperty name="containerUri">
+						<!-- Not used now -->
+						<constant>https://hub.docker.com/layers/ashokkumarta/recommendations-processor-app/latest/images/sha256-d6115f273383938e5be0ffa8fc9021c94ba4895e141b5d38c25121b26a2573d3#9191</constant>
+					</setProperty>
+					<process ref="ContractRequestProcessor" />
+				</when>
+				<when>
+					<simple>${exchangeProperty.ids-type} == 'ContractAgreementMessage'</simple>
+					<log
+						message="### RECOMMENDATION INCENTIVE - Handling Contract Agreement Message ###" />
+					<!-- Only processing of incoming request must be performed, no reply -->
+					<process ref="ContractAgreementReceiverProcessor" />
+					<removeHeader headerName="idscp2-header" />
+					<setBody>
+						<simple>${null}</simple>
+					</setBody>
+				</when>
+				<when>
+					<simple>${exchangeProperty.ids-type} == 'ArtifactRequestMessage'</simple>
+
+					<log
+						message="RECOMMENDATION INCENTIVE - Received request for recommendation incentive..." />
+
+					<log
+						message="RECOMMENDATION INCENTIVE - Invoking regulator-recommendations-incentive-app dataapp to get recommendation incentive..." />
+					<to
+						uri="http://regulator-recommendations-incentive:9901?awaitResponse=true" />
+
+					<log
+						message="RECOMMENDATION INCENTIVE - Pushing recommendation incentive as payload in IDS message ..." />
+					<setProperty name="tmf_content_pay_load">
+						<simple>${bodyAs(String)}</simple>
+					</setProperty>
+
+					<setProperty name="artifactUri">
+						<constant>https://catalyst.tmf/ran-share/recommendations-incentive</constant>
+					</setProperty>
+
+					<log message="RECOMMENDATION INCENTIVE - Sending recommendation incentive..." />
+					<process ref="TMFArtifactResponseProcessor" />
+
+					<log
+						message="RECOMMENDATION INCENTIVE - Recommendation incentive sent successfully: ${body}" />
+
+				</when>
+				<otherwise>
+					<log loggingLevel="ERROR"
+						message="### RECOMMENDATION INCENTIVE - Server received unexpected message (otherwise branch):\n${body}\n### Header: ###\n${headers[idscp2-header]}" />
+					<removeHeader headerName="idscp2-header" />
+					<setBody>
+						<simple>${null}</simple>
+					</setBody>
+				</otherwise>
+			</choice>
+		</route>
+
+
 	</camelContext>
 
 </beans>
