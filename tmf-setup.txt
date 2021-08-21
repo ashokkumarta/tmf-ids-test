@@ -1,7 +1,11 @@
 # Build dataapps
 d:
 cd D:\Ashok\Work\IDS\git\tmf-ids-test\dataapps
-cd mno1-sharing-agent-app
+cd csp-sharing-agent-app
+docker image rm ashokkumarta/csp-sharing-agent-app:latest
+docker build -t ashokkumarta/csp-sharing-agent-app:latest .
+docker push ashokkumarta/csp-sharing-agent-app:latest
+cd ..\mno1-sharing-agent-app
 docker image rm ashokkumarta/mno1-sharing-agent-app:latest
 docker build -t ashokkumarta/mno1-sharing-agent-app:latest .
 docker push ashokkumarta/mno1-sharing-agent-app:latest
@@ -9,19 +13,11 @@ cd ..\mno2-sharing-agent-app
 docker image rm ashokkumarta/mno2-sharing-agent-app:latest
 docker build -t ashokkumarta/mno2-sharing-agent-app:latest .
 docker push ashokkumarta/mno2-sharing-agent-app:latest
-cd ..\mno3-sharing-agent-app
-docker image rm ashokkumarta/mno3-sharing-agent-app:latest
-docker build -t ashokkumarta/mno3-sharing-agent-app:latest .
-docker push ashokkumarta/mno3-sharing-agent-app:latest
 cd ..\regulator-recommendations-app
 docker image rm ashokkumarta/regulator-recommendations-app:latest
 docker build -t ashokkumarta/regulator-recommendations-app:latest .
 docker push ashokkumarta/regulator-recommendations-app:latest
 cd ..\recommendations-processor-app
-docker image rm ashokkumarta/recommendations-processor-app:12.7.21
-docker build -t ashokkumarta/recommendations-processor-app:12.7.21 .
-docker push ashokkumarta/recommendations-processor-app:12.7.21
-cd ..\recommendations-processor-app-latest
 docker image rm ashokkumarta/recommendations-processor-app:latest
 docker build -t ashokkumarta/recommendations-processor-app:latest .
 docker push ashokkumarta/recommendations-processor-app:latest
@@ -29,7 +25,29 @@ cd ..\usage-data-processor-app
 docker image rm ashokkumarta/usage-data-processor-app:latest
 docker build -t ashokkumarta/usage-data-processor-app:latest .
 docker push ashokkumarta/usage-data-processor-app:latest
+cd ..\csp-recommendations-feedback-app
+docker image rm ashokkumarta/csp-recommendations-feedback-app:latest
+docker build -t ashokkumarta/csp-recommendations-feedback-app:latest .
+docker push ashokkumarta/csp-recommendations-feedback-app:latest
+cd ..\mno1-recommendations-feedback-app
+docker image rm ashokkumarta/mno1-recommendations-feedback-app:latest
+docker build -t ashokkumarta/mno1-recommendations-feedback-app:latest .
+docker push ashokkumarta/mno1-recommendations-feedback-app:latest
+cd ..\mno2-recommendations-feedback-app
+docker image rm ashokkumarta/mno2-recommendations-feedback-app:latest
+docker build -t ashokkumarta/mno2-recommendations-feedback-app:latest .
+docker push ashokkumarta/mno2-recommendations-feedback-app:latest
+cd ..\regulator-recommendations-incentive-app
+docker image rm ashokkumarta/regulator-recommendations-incentive-app:latest
+docker build -t ashokkumarta/regulator-recommendations-incentive-app:latest .
+docker push ashokkumarta/regulator-recommendations-incentive-app:latest
 cd ..
+
+
+csp-recommendations-feedback-app
+mno1-recommendations-feedback-app
+mno2-recommendations-feedback-app
+regulator-recommendations-incentive-app
 
 
 
