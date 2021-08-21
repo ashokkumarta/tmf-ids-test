@@ -28,6 +28,11 @@ services:
     networks:
       - ids-local
 
+  csp-recommendation-response:
+    image: ashokkumarta/csp-recommendations-feedback-app:latest
+    networks:
+      - ids-local
+
 networks:
   ids-local:
     driver: bridge
