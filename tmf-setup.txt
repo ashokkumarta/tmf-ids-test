@@ -45,7 +45,12 @@ cd ..\recommendations-incentive-processor-app
 docker image rm ashokkumarta/recommendations-incentive-processor-app:latest
 docker build -t ashokkumarta/recommendations-incentive-processor-app:latest .
 docker push ashokkumarta/recommendations-incentive-processor-app:latest
+cd ..\recommendations-feedback-processor-app
+docker image rm ashokkumarta/recommendations-feedback-processor-app:latest
+docker build -t ashokkumarta/recommendations-feedback-processor-app:latest .
+docker push ashokkumarta/recommendations-feedback-processor-app:latest
 cd ..
+
 
 
 

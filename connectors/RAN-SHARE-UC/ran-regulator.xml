@@ -271,7 +271,7 @@
 					<log
 						message="### RECOMMENDATION INCENTIVE - Handling Contract Request Message ###" />
 					<setProperty name="containerUri">
-						<constant>https://hub.docker.com/layers/ashokkumarta/recommendations-incentive-processor-app/latest/images/sha256-f79c60c0aca6d4c4d5f4227f06aeaade8bf04d866718ae7f6234fd07542e71f1#9191</constant>
+						<constant>https://hub.docker.com/layers/ashokkumarta/recommendations-incentive-processor-app/latest/images/sha256-eab710cdd85f75df046e66742ce4399b290473b1629f1affcff7d8453ae891f5#9191</constant>
 					</setProperty>
 					<process ref="ContractRequestProcessor" />
 				</when>
