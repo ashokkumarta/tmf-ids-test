@@ -69,7 +69,7 @@
 					<log
 						message="### USAGE DATA - Handling Contract Request Message ###" />
 					<setProperty name="containerUri">
-						<constant>https://hub.docker.com/layers/ashokkumarta/usage-data-processor-app/latest/images/sha256-6e36e583f4643b37387d2baad3645d87b142c970172b1e0b9ffe9f3391d8dca2#9192</constant>
+						<constant>https://hub.docker.com/layers/ashokkumarta/regulator-usage-data-processor-app/latest/images/sha256-6e36e583f4643b37387d2baad3645d87b142c970172b1e0b9ffe9f3391d8dca2#9192</constant>
 					</setProperty>
 					<process ref="ContractRequestProcessor" />
 					<to
@@ -274,7 +274,7 @@
 					<log
 						message="### RECOMMENDATION RESPONSE - Handling Contract Request Message ###" />
 					<setProperty name="containerUri">
-						<constant>https://hub.docker.com/layers/ashokkumarta/recommendations-feedback-processor-app/latest/images/sha256-48d986f0ecb04d7bd363988f1338318a122d83b65de17555267cc9a88d91b37d#9192</constant>
+						<constant>https://hub.docker.com/layers/ashokkumarta/regulator-recommendations-feedback-processor-app/latest/images/sha256-48d986f0ecb04d7bd363988f1338318a122d83b65de17555267cc9a88d91b37d#9192</constant>
 					</setProperty>
 					<process ref="ContractRequestProcessor" />
 					<to
