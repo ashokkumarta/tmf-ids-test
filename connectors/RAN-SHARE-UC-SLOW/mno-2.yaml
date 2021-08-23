@@ -1,0 +1,44 @@
+version: '3.7'
+services:
+  # The core platform, mounts docker control socket and route definition into the image
+  mno-2:
+    image: ashokkumarta/ids-trusted-connector
+    tty: true
+    stdin_open: true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ../deploy/allow-all-flows.pl:/root/deploy/allow-all-flows.pl
+      - ../etc/settings-mno-2.mapdb:/root/etc/settings.mapdb
+      - ../etc/mno-2.p12:/root/etc/mno-2.p12
+      - ../etc/truststore.p12:/root/etc/truststore.p12
+      - ./mno-2.xml:/root/deploy/mno-2.xml
+    # Enable this port mappings for debugging or UI access from localhost
+    ports:
+      - "8082:8080"
+    networks:
+      - ids-local
+
+  mno2-performance:
+    image: ashokkumarta/mno2-sharing-agent-app
+    networks:
+      - ids-local
+
+  mno2-recommendation-processor:
+    image: ashokkumarta/recommendations-processor-app:latest
+    networks:
+      - ids-local
+
+  mno2-recommendation-response:
+    image: ashokkumarta/mno2-recommendations-feedback-app:latest
+    networks:
+      - ids-local
+
+  mno2-recommendation-incentive-processor:
+    image: ashokkumarta/recommendations-incentive-processor-app:latest
+    networks:
+      - ids-local
+
+networks:
+  ids-local:
+    driver: bridge
+    

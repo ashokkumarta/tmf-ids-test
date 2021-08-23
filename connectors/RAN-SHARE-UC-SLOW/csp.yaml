@@ -1,0 +1,44 @@
+version: '3.7'
+services:
+  # The core platform, mounts docker control socket and route definition into the image
+  csp:
+    image: ashokkumarta/ids-trusted-connector
+    tty: true
+    stdin_open: true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ../deploy/allow-all-flows.pl:/root/deploy/allow-all-flows.pl
+      - ../etc/settings-csp.mapdb:/root/etc/settings.mapdb
+      - ../etc/csp.p12:/root/etc/csp.p12
+      - ../etc/truststore.p12:/root/etc/truststore.p12
+      - ./csp.xml:/root/deploy/csp.xml
+    # Enable this port mappings for debugging or UI access from localhost
+    ports:
+      - "8089:8080"
+    networks:
+      - ids-local
+
+  csp-performance:
+    image: ashokkumarta/csp-sharing-agent-app
+    networks:
+      - ids-local
+
+  csp-recommendation-processor:
+    image: ashokkumarta/recommendations-processor-app:latest
+    networks:
+      - ids-local
+
+  csp-recommendation-response:
+    image: ashokkumarta/csp-recommendations-feedback-app:latest
+    networks:
+      - ids-local
+
+  csp-recommendation-incentive-processor:
+    image: ashokkumarta/recommendations-incentive-processor-app:latest
+    networks:
+      - ids-local
+
+networks:
+  ids-local:
+    driver: bridge
+    
