@@ -1,0 +1,15 @@
+Creating network "ran-share-uc-slow_ids-local" with driver "bridge"
+Creating ran-share-uc-slow_usage-data-processor_1 ... 
+Creating ran-share-uc-slow_regulator-recommendations-incentive_1 ... 
+Creating ran-share-uc-slow_regulator-recommendations_1           ... 
+Creating ran-share-uc-slow_ran-regulator_1                       ... 
+Host is already in use by another container
+Creating ran-share-uc-slow_ran-regulator_1                       ... error
+
+ERROR: for ran-share-uc-slow_ran-regulator_1  Cannot start service ran-regulator: driver failed programming external connectivity on endpoint ran-share-uc-slow_ran-regulator_1 (ab86654b2ee9d7efcd5528138d10be9d2482b95d9df46cde9fbd54ab27eeea5a): Bind for 0.0.0.0:8080 failed: port is already allocated
+Creating ran-share-uc-slow_regulator-recommendations_1           ... done
+Creating ran-share-uc-slow_regulator-recommendations-incentive_1 ... done
+Creating ran-share-uc-slow_usage-data-processor_1                ... done
+
+ERROR: for ran-regulator  Cannot start service ran-regulator: driver failed programming external connectivity on endpoint ran-share-uc-slow_ran-regulator_1 (ab86654b2ee9d7efcd5528138d10be9d2482b95d9df46cde9fbd54ab27eeea5a): Bind for 0.0.0.0:8080 failed: port is already allocated
+Encountered errors while bringing up the project.
