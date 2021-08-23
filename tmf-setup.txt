@@ -41,7 +41,12 @@ cd ..\regulator-recommendations-incentive-app
 docker image rm ashokkumarta/regulator-recommendations-incentive-app:latest
 docker build -t ashokkumarta/regulator-recommendations-incentive-app:latest .
 docker push ashokkumarta/regulator-recommendations-incentive-app:latest
+cd ..\recommendations-incentive-processor-app
+docker image rm ashokkumarta/recommendations-incentive-processor-app:latest
+docker build -t ashokkumarta/recommendations-incentive-processor-app:latest .
+docker push ashokkumarta/recommendations-incentive-processor-app:latest
 cd ..
+
 
 
 csp-recommendations-feedback-app
@@ -106,9 +111,4 @@ docker-compose -f docker-compose-client.yaml up
 ashokkumarta/recommendations-processor-app@sha256:a698c89cb5ea58ed804a928103a6e465bb6adc67941be740c4369a070c15a29b
 
 jmalloc/echo-server@sha256:c461e7e54d947a8777413aaf9c624b4ad1f1bac5d8272475da859ae82c1abd7d
-
-
-
-
-
 

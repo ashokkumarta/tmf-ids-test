@@ -370,7 +370,6 @@
 			</choice>
 		</route>
 
-
 		<route id="recommendation-incentive-contract">
 			<from
 				uri="timer://recommendationIncentiveContractRequest?repeatCount=1" />
@@ -407,7 +406,7 @@
 
 		<route id="recommendation-incentive">
 			<from
-				uri="timer://recommendationIncentiveTimer?fixedRate=true&amp;period=25000&amp;delay=100000" />
+				uri="timer://recommendationIncentiveTimer?fixedRate=true&amp;period=25000&amp;delay=50000" />
 
 			<log
 				message="RECOMMENDATOIN INCENTIVE - Requesting for recommendation incentive..." />
@@ -429,8 +428,17 @@
 					<log
 						message="RECOMMENDATOIN INCENTIVE - Processing the recommendation incentive received..." />
 
+					<setHeader name="CamelHttpMethod">
+						<constant>POST</constant>
+					</setHeader>
+					<setHeader name="content-type">
+						<simple>text/plain</simple>
+					</setHeader>
+					<to
+						uri="http://mno1-recommendation-incentive-processor:9191?awaitResponse=true" />
 					<log message="RECOMMENDATOIN INCENTIVE - Proecssing complete." />
 
+					<log message="RECOMMENDATOIN INCENTIVE - Applied successfully" />
 					<!-- Set body to null after data transfer -->
 					<removeHeader headerName="idscp2-header" />
 					<setBody>
@@ -443,8 +451,6 @@
 				</otherwise>
 			</choice>
 		</route>
-
-
 
 	</camelContext>
 </beans>

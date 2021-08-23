@@ -53,15 +53,15 @@
 					</setProperty>
 					<process ref="TMFArtifactInitProcessor" />
 
-					<log
-						message="### USAGE DATA - Initiating Contract Request ###" />
+					<log message="### USAGE DATA - Initiating Contract Request ###" />
 
 					<process ref="ContractRequestCreationProcessor" />
 				</when>
 				<when>
 					<simple>${exchangeProperty.ids-type} == 'ContractResponseMessage'</simple>
 
-					<log message="### USAGE DATA - Handling Contract Response - ContractResponseMessage ###" />
+					<log
+						message="### USAGE DATA - Handling Contract Response - ContractResponseMessage ###" />
 					<process ref="ContractResponseProcessor" />
 				</when>
 				<when>
@@ -74,8 +74,7 @@
 					</setProperty>
 
 					<process ref="ArtifactRequestCreationProcessor" />
-					<log
-						message="USAGE DATA - Sending request for usage data" />
+					<log message="USAGE DATA - Sending request for usage data" />
 				</when>
 				<when>
 					<simple>${exchangeProperty.ids-type} == 'ArtifactResponseMessage'</simple>
@@ -90,10 +89,10 @@
 					<setHeader name="content-type">
 						<simple>text/plain</simple>
 					</setHeader>
-					<to
-						uri="http://usage-data-processor:9192?awaitResponse=true" />
+					<to uri="http://usage-data-processor:9192?awaitResponse=true" />
 
-					<log message="USAGE DATA - Response from processing usage data: \n${body}" />
+					<log
+						message="USAGE DATA - Response from processing usage data: \n${body}" />
 					<log message="USAGE DATA - Proecssing complete." />
 
 					<!-- Set body to null after data transfer -->
@@ -133,7 +132,7 @@
 					<log
 						message="### RECOMMENDATIONS - Handling Contract Request Message ###" />
 					<setProperty name="containerUri">
-						<constant>https://hub.docker.com/layers/ashokkumarta/recommendations-processor-app/latest/images/sha256-d6115f273383938e5be0ffa8fc9021c94ba4895e141b5d38c25121b26a2573d3#9191</constant>
+						<constant>https://hub.docker.com/layers/ashokkumarta/recommendations-processor-app/latest/images/sha256-ecdb48ac07af31fe853e31a96dee5df0d43436448dc5d7837b630a83f36d0089#9191</constant>
 					</setProperty>
 					<process ref="ContractRequestProcessor" />
 				</when>
@@ -210,7 +209,8 @@
 				<when>
 					<simple>${exchangeProperty.ids-type} == 'ContractResponseMessage'</simple>
 
-					<log message="### RECOMMENDATION RESPONSE - Handling Contract Response - ContractResponseMessage ###" />
+					<log
+						message="### RECOMMENDATION RESPONSE - Handling Contract Response - ContractResponseMessage ###" />
 					<process ref="ContractResponseProcessor" />
 				</when>
 				<when>
@@ -228,7 +228,8 @@
 				</when>
 				<when>
 					<simple>${exchangeProperty.ids-type} == 'ArtifactResponseMessage'</simple>
-					<log message="RECOMMENDATION RESPONSE - Received recommendation response:\n${body}\n" />
+					<log
+						message="RECOMMENDATION RESPONSE - Received recommendation response:\n${body}\n" />
 
 					<log message="RECOMMENDATION RESPONSE - Processing..." />
 
@@ -251,6 +252,7 @@
 			</choice>
 		</route>
 
+
 		<route id="recommendation-incentive-server">
 			<from
 				uri="idscp2server://0.0.0.0:29294?sslContextParameters=#sslContext&amp;useIdsMessages=true" />
@@ -260,7 +262,7 @@
 					<simple>${exchangeProperty.ids-type} == 'ContractRequestMessage'</simple>
 
 					<log
-						message="### RECOMMENDATION INCENTIVE - Initializing Recommendation incentive artifact trust ###" />
+						message="### RECOMMENDATION INCENTIVE - Initializing recommendation incentive artifact trust ###" />
 					<setProperty name="artifactUri">
 						<constant>https://catalyst.tmf/ran-share/recommendation-incentive</constant>
 					</setProperty>
@@ -268,9 +270,11 @@
 
 					<log
 						message="### RECOMMENDATION INCENTIVE - Handling Contract Request Message ###" />
+					<setProperty name="containerUri">
+						<constant>https://hub.docker.com/layers/ashokkumarta/recommendations-incentive-processor-app/latest/images/sha256-f79c60c0aca6d4c4d5f4227f06aeaade8bf04d866718ae7f6234fd07542e71f1#9191</constant>
+					</setProperty>
 					<process ref="ContractRequestProcessor" />
 				</when>
-
 				<when>
 					<simple>${exchangeProperty.ids-type} == 'ContractAgreementMessage'</simple>
 					<log
@@ -286,10 +290,10 @@
 					<simple>${exchangeProperty.ids-type} == 'ArtifactRequestMessage'</simple>
 
 					<log
-						message="RECOMMENDATION INCENTIVE - Received request for recommendation incentive..." />
+						message="RECOMMENDATION INCENTIVE - Received request for recommendation incentive ..." />
 
 					<log
-						message="RECOMMENDATION INCENTIVE - Invoking regulator-recommendations-incentive-app dataapp to get recommendation incentive..." />
+						message="RECOMMENDATION INCENTIVE - Invoking regulator-recommendations-incentive app to get recommendation incentive..." />
 					<to
 						uri="http://regulator-recommendations-incentive:9901?awaitResponse=true" />
 
@@ -300,7 +304,7 @@
 					</setProperty>
 
 					<setProperty name="artifactUri">
-						<constant>https://catalyst.tmf/ran-share/recommendations-incentive</constant>
+						<constant>https://catalyst.tmf/ran-share/recommendation-incentive</constant>
 					</setProperty>
 
 					<log message="RECOMMENDATION INCENTIVE - Sending recommendation incentive..." />
