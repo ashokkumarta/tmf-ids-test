@@ -24,7 +24,7 @@ docker push ashokkumarta/recommendations-processor-app:latest
 cd ..\regulator-usage-data-processor-app
 docker image rm ashokkumarta/regulator-usage-data-processor-app:latest
 docker build -t ashokkumarta/regulator-usage-data-processor-app:latest .
-docker push ashokkumarta/usage-data-processor-app:latest
+docker push ashokkumarta/regulator-usage-data-processor-app:latest
 cd ..\csp-recommendations-feedback-app
 docker image rm ashokkumarta/csp-recommendations-feedback-app:latest
 docker build -t ashokkumarta/csp-recommendations-feedback-app:latest .
