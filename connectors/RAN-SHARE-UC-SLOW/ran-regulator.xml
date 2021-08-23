@@ -89,7 +89,7 @@
 					<setHeader name="content-type">
 						<simple>text/plain</simple>
 					</setHeader>
-					<to uri="http://usage-data-processor:9192?awaitResponse=true" />
+					<to uri="http://regulator-usage-data-processor:9192?awaitResponse=true" />
 
 					<log
 						message="USAGE DATA - Response from processing usage data: \n${body}" />
