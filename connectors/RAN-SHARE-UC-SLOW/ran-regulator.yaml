@@ -28,8 +28,13 @@ services:
     networks:
       - ids-local
 
-  usage-data-processor:
-    image: ashokkumarta/usage-data-processor-app:latest
+  regulator-usage-data-processor:
+    image: ashokkumarta/regulator-usage-data-processor-app:latest
+    networks:
+      - ids-local
+      
+  regulator-recommendations-feedback-processor:
+    image: ashokkumarta/regulator-recommendations-feedback-processor-app:latest
     networks:
       - ids-local
 
