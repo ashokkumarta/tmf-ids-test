@@ -69,7 +69,7 @@
 					<log
 						message="### USAGE DATA - Handling Contract Request Message ###" />
 					<setProperty name="containerUri">
-						<constant>https://hub.docker.com/layers/ashokkumarta/usage-data-processor-app/latest/images/sha256-567e26eb23c20c313d0704a70fdb51751c53653e2abe1c3220ea67dd7cd10b37#9192</constant>
+						<constant>https://hub.docker.com/layers/ashokkumarta/usage-data-processor-app/latest/images/sha256-6e36e583f4643b37387d2baad3645d87b142c970172b1e0b9ffe9f3391d8dca2#9192</constant>
 					</setProperty>
 					<process ref="ContractRequestProcessor" />
 					<to
@@ -135,7 +135,7 @@
 						message="### USAGE DATA - Received 'request for usage data' ###" />
 
 					<log
-						message="USAGE DATA - Collating usage data from csp performance dataapp..." />
+						message="USAGE DATA - Collating usage data from mno performance dataapp..." />
 
 					<to uri="http://csp-performance:9001?awaitResponse=true" />
 
@@ -247,7 +247,8 @@
 				</otherwise>
 			</choice>
 		</route>
-		
+
+
 		<route id="recommendation-response-contract">
 			<from uri="timer://recommendationResponseContractRequest?repeatCount=1" />
 
@@ -273,7 +274,7 @@
 					<log
 						message="### RECOMMENDATION RESPONSE - Handling Contract Request Message ###" />
 					<setProperty name="containerUri">
-						<constant>https://hub.docker.com/layers/ashokkumarta/usage-data-processor-app/latest/images/sha256-567e26eb23c20c313d0704a70fdb51751c53653e2abe1c3220ea67dd7cd10b37#9192</constant>
+						<constant>https://hub.docker.com/layers/ashokkumarta/recommendations-feedback-processor-app/latest/images/sha256-48d986f0ecb04d7bd363988f1338318a122d83b65de17555267cc9a88d91b37d#9192</constant>
 					</setProperty>
 					<process ref="ContractRequestProcessor" />
 					<to
@@ -317,7 +318,7 @@
 
 		<route id="recommendation-response">
 			<from
-				uri="timer://recommendationResponseTimer?fixedRate=true&amp;period=10000&amp;delay=60000" />
+				uri="timer://recommendationResponseTimer?fixedRate=true&amp;period=30000&amp;delay=50000" />
 
 			<log
 				message="### RECOMMENDATION RESPONSE - Initiating Usage Data exchange ###" />
@@ -341,7 +342,7 @@
 					<log
 						message="RECOMMENDATION RESPONSE - Collating recommendation response from mno recommendations feedback dataapp..." />
 
-					<to uri="http://mno1-recommendation-response:9001?awaitResponse=true" />
+					<to uri="http://csp-recommendation-response:9001?awaitResponse=true" />
 
 					<log
 						message="RECOMMENDATION RESPONSE - Pushing recommendation response as payload in IDS response..." />
@@ -368,7 +369,6 @@
 				</otherwise>
 			</choice>
 		</route>
-
 
 		<route id="recommendation-incentive-contract">
 			<from
@@ -406,7 +406,7 @@
 
 		<route id="recommendation-incentive">
 			<from
-				uri="timer://recommendationIncentiveTimer?fixedRate=true&amp;period=25000&amp;delay=100000" />
+				uri="timer://recommendationIncentiveTimer?fixedRate=true&amp;period=60000&amp;delay=60000" />
 
 			<log
 				message="RECOMMENDATOIN INCENTIVE - Requesting for recommendation incentive..." />
@@ -428,8 +428,17 @@
 					<log
 						message="RECOMMENDATOIN INCENTIVE - Processing the recommendation incentive received..." />
 
+					<setHeader name="CamelHttpMethod">
+						<constant>POST</constant>
+					</setHeader>
+					<setHeader name="content-type">
+						<simple>text/plain</simple>
+					</setHeader>
+					<to
+						uri="http://csp-recommendation-incentive-processor:9191?awaitResponse=true" />
 					<log message="RECOMMENDATOIN INCENTIVE - Proecssing complete." />
 
+					<log message="RECOMMENDATOIN INCENTIVE - Applied successfully" />
 					<!-- Set body to null after data transfer -->
 					<removeHeader headerName="idscp2-header" />
 					<setBody>
@@ -442,6 +451,6 @@
 				</otherwise>
 			</choice>
 		</route>
-		
+
 	</camelContext>
 </beans>

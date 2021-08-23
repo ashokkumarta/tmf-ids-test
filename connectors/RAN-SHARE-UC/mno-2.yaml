@@ -33,6 +33,11 @@ services:
     networks:
       - ids-local
 
+  mno2-recommendation-incentive-processor:
+    image: ashokkumarta/recommendations-incentive-processor-app:latest
+    networks:
+      - ids-local
+
 networks:
   ids-local:
     driver: bridge

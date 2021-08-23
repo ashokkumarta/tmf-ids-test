@@ -318,7 +318,7 @@
 
 		<route id="recommendation-response">
 			<from
-				uri="timer://recommendationResponseTimer?fixedRate=true&amp;period=10000&amp;delay=60000" />
+				uri="timer://recommendationResponseTimer?fixedRate=true&amp;period=30000&amp;delay=50000" />
 
 			<log
 				message="### RECOMMENDATION RESPONSE - Initiating Usage Data exchange ###" />
@@ -406,7 +406,7 @@
 
 		<route id="recommendation-incentive">
 			<from
-				uri="timer://recommendationIncentiveTimer?fixedRate=true&amp;period=25000&amp;delay=50000" />
+				uri="timer://recommendationIncentiveTimer?fixedRate=true&amp;period=60000&amp;delay=60000" />
 
 			<log
 				message="RECOMMENDATOIN INCENTIVE - Requesting for recommendation incentive..." />
