@@ -1,0 +1,456 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:camel="http://camel.apache.org/schema/spring"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+          http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+          http://camel.apache.org/schema/spring
+          http://camel.apache.org/schema/spring/camel-spring.xsd">
+
+	<camel:sslContextParameters id="sslContext"
+		certAlias="1.0.1">
+		<camel:keyManagers keyPassword="password">
+			<camel:keyStore resource="etc/mno-2.p12"
+				password="password" />
+		</camel:keyManagers>
+		<camel:trustManagers>
+			<camel:keyStore resource="etc/truststore.p12"
+				password="password" />
+		</camel:trustManagers>
+	</camel:sslContextParameters>
+
+	<bean id="ArtifactRequestCreationProcessor"
+		class="de.fhg.aisec.ids.camel.idscp2.processors.ArtifactRequestCreationProcessor" />
+	<bean id="ContractRequestCreationProcessor"
+		class="de.fhg.aisec.ids.camel.idscp2.processors.ContractRequestCreationProcessor" />
+	<bean id="ContractResponseProcessor"
+		class="de.fhg.aisec.ids.camel.idscp2.processors.ContractResponseProcessor" />
+	<bean id="TypeExtractionProcessor"
+		class="de.fhg.aisec.ids.camel.idscp2.processors.IdsMessageTypeExtractionProcessor" />
+
+	<bean id="TMFArtifactInitProcessor"
+		class="tmf.ids.processors.TMFArtifactInitProcessor" />
+	<bean id="TMFArtifactResponseProcessor"
+		class="tmf.ids.processors.TMFArtifactResponseProcessor" />
+	<bean id="TMFContractInitProcessor"
+		class="tmf.ids.processors.TMFContractInitProcessor" />
+
+	<bean id="ContractRequestProcessor"
+		class="de.fhg.aisec.ids.camel.idscp2.processors.ContractRequestProcessor" />
+	<bean id="ContractAgreementReceiverProcessor"
+		class="de.fhg.aisec.ids.camel.idscp2.processors.ContractAgreementReceiverProcessor" />
+
+
+	<camelContext
+		xmlns="http://camel.apache.org/schema/spring">
+
+		<route id="usage-data-contract">
+			<from uri="timer://usageDataContractRequest?repeatCount=1" />
+
+			<log
+				message="### USAGE DATA - Initiating request for Contract ###" />
+
+			<setProperty name="artifactUri">
+				<constant>https://catalyst.tmf/ran-share/usage-data</constant>
+			</setProperty>
+			<process ref="TMFArtifactInitProcessor" />
+
+			<log
+				message="### USAGE DATA - Requesting to 'request for contract' ###" />
+			<process ref="ContractRequestCreationProcessor" />
+			<to
+				uri="idscp2client://ran-regulator:29292?awaitResponse=true&amp;connectionShareId=udConnection&amp;sslContextParameters=#sslContext&amp;useIdsMessages=true" />
+
+			<process ref="TypeExtractionProcessor" />
+			<choice>
+				<when>
+					<simple>${exchangeProperty.ids-type} == 'ContractRequestMessage'</simple>
+
+					<log
+						message="### USAGE DATA - Handling Contract Request Message ###" />
+					<setProperty name="containerUri">
+						<constant>https://hub.docker.com/layers/ashokkumarta/regulator-usage-data-processor-app/latest/images/sha256-6e36e583f4643b37387d2baad3645d87b142c970172b1e0b9ffe9f3391d8dca2#9192</constant>
+					</setProperty>
+					<process ref="ContractRequestProcessor" />
+					<to
+						uri="idscp2client://ran-regulator:29292?awaitResponse=true&amp;connectionShareId=udConnection&amp;sslContextParameters=#sslContext&amp;useIdsMessages=true" />
+
+					<process ref="TypeExtractionProcessor" />
+					<choice>
+						<when>
+							<simple>${exchangeProperty.ids-type} == 'ContractAgreementMessage'</simple>
+							<log
+								message="### USAGE DATA - Handling Contract Agreement Message ###" />
+							<!-- Only processing of incoming request must be performed, no reply -->
+							<process ref="ContractAgreementReceiverProcessor" />
+							<removeHeader headerName="idscp2-header" />
+							<setBody>
+								<simple>${null}</simple>
+							</setBody>
+						</when>
+						<otherwise>
+							<log loggingLevel="ERROR"
+								message="### USAGE DATA - Server expected ContractAgreementMessage but received unexpected message (otherwise branch):\n${body}\n### Header: ###\n${headers[idscp2-header]}" />
+							<removeHeader headerName="idscp2-header" />
+							<setBody>
+								<simple>${null}</simple>
+							</setBody>
+						</otherwise>
+					</choice>
+				</when>
+				<otherwise>
+					<log loggingLevel="ERROR"
+						message="### USAGE DATA - Server received unexpected message (otherwise branch):\n${body}\n### Header: ###\n${headers[idscp2-header]}" />
+					<removeHeader headerName="idscp2-header" />
+					<setBody>
+						<simple>${null}</simple>
+					</setBody>
+				</otherwise>
+			</choice>
+
+		</route>
+
+
+		<route id="usage-data">
+			<from
+				uri="timer://usageDataTimer?fixedRate=true&amp;period=100000&amp;delay=300000" />
+
+			<log
+				message="### USAGE DATA - Initiating Usage Data exchange ###" />
+			<setProperty name="artifactUri">
+				<constant>https://catalyst.tmf/ran-share/usage-data</constant>
+			</setProperty>
+
+			<process ref="ArtifactRequestCreationProcessor" />
+			<log
+				message="### USAGE DATA - Sending request to 'request for usage data' ###" />
+
+			<to
+				uri="idscp2client://ran-regulator:29292?awaitResponse=true&amp;connectionShareId=udConnection&amp;sslContextParameters=#sslContext&amp;useIdsMessages=true" />
+			<process ref="TypeExtractionProcessor" />
+			<choice>
+				<when>
+					<simple>${exchangeProperty.ids-type} == 'ArtifactRequestMessage'</simple>
+					<log
+						message="### USAGE DATA - Received 'request for usage data' ###" />
+
+					<log
+						message="USAGE DATA - Collating usage data from mno performance dataapp..." />
+
+					<to uri="http://mno2-performance:9001?awaitResponse=true" />
+
+					<log
+						message="USAGE DATA - Pushing usage data as payload in IDS response..." />
+					<setProperty name="tmf_content_pay_load">
+						<simple>${bodyAs(String)}</simple>
+					</setProperty>
+
+					<setProperty name="artifactUri">
+						<constant>https://catalyst.tmf/ran-share/usage-data</constant>
+					</setProperty>
+
+					<process ref="TMFArtifactResponseProcessor" />
+					<log
+						message="USAGE DATA - Sending usage data to ran-regulator:\n\n${body}" />
+					<to
+						uri="idscp2client://ran-regulator:29292?connectionShareId=udConnection&amp;sslContextParameters=#sslContext&amp;useIdsMessages=true" />
+
+					<log
+						message="USAGE DATA - Usage data sent to ran-regulator successfully" />
+				</when>
+				<otherwise>
+					<log loggingLevel="ERROR"
+						message="USAGE DATA - Expected ArtifactResponseMessage, but received:\n${body}\n### Header: ###\n${headers[idscp2-header]}" />
+				</otherwise>
+			</choice>
+		</route>
+
+
+		<route id="recommendations-contract">
+			<from
+				uri="timer://recommendationsContractRequest?repeatCount=1" />
+			<log message="### RECOMMENDATOINS - Initiating contract ###" />
+
+			<setProperty name="artifactUri">
+				<constant>https://catalyst.tmf/ran-share/recommendations</constant>
+			</setProperty>
+			<process ref="TMFArtifactInitProcessor" />
+			
+			<process ref="ContractRequestCreationProcessor" />
+			<to
+				uri="idscp2client://ran-regulator:29291?awaitResponse=true&amp;connectionShareId=recomConnection&amp;sslContextParameters=#sslContext&amp;useIdsMessages=true" />
+			<process ref="TypeExtractionProcessor" />
+			<choice>
+				<when>
+					<simple>${exchangeProperty.ids-type} == 'ContractResponseMessage'</simple>
+					<log
+						message="### RECOMMENDATOINS - Handling Contract Response ###" />
+					<process ref="ContractResponseProcessor" />
+					<to
+						uri="idscp2client://ran-regulator:29291?connectionShareId=recomConnection&amp;sslContextParameters=#sslContext&amp;useIdsMessages=true" />
+				</when>
+				<otherwise>
+					<log loggingLevel="ERROR"
+						message="RECOMMENDATOINS - Expected ContractResponseMessage, but received:\n${body}\n### Header: ###\n${headers[idscp2-header]}" />
+					<removeHeader headerName="idscp2-header" />
+					<setBody>
+						<simple>${null}</simple>
+					</setBody>
+				</otherwise>
+			</choice>
+		</route>
+
+		<route id="recommendations">
+			<from
+				uri="timer://recommendationsTimer?fixedRate=true&amp;period=250000&amp;delay=500000" />
+
+			<log
+				message="RECOMMENDATOINS - Requesting for recommendations..." />
+			<setProperty name="artifactUri">
+				<constant>https://catalyst.tmf/ran-share/recommendations</constant>
+			</setProperty>
+
+			<process ref="ArtifactRequestCreationProcessor" />
+			<to
+				uri="idscp2client://ran-regulator:29291?awaitResponse=true&amp;connectionShareId=recomConnection&amp;sslContextParameters=#sslContext&amp;useIdsMessages=true" />
+			<process ref="TypeExtractionProcessor" />
+			<choice>
+				<when>
+					<simple>${exchangeProperty.ids-type} == 'ArtifactResponseMessage'</simple>
+					<log
+						message="RECOMMENDATOINS - Received recommendation from ran-regulator\n\n${body}" />
+
+					<!-- Process the recommendation -->
+					<log
+						message="RECOMMENDATOINS - Processing the recommendation received..." />
+
+					<setHeader name="CamelHttpMethod">
+						<constant>POST</constant>
+					</setHeader>
+					<setHeader name="content-type">
+						<simple>text/plain</simple>
+					</setHeader>
+					<to
+						uri="http://mno2-recommendation-processor:9191?awaitResponse=true" />
+					<log message="RECOMMENDATOINS - Proecssing complete." />
+
+					<log message="RECOMMENDATOINS - Applied successfully" />
+					<!-- Set body to null after data transfer -->
+					<removeHeader headerName="idscp2-header" />
+					<setBody>
+						<simple>${null}</simple>
+					</setBody>
+				</when>
+				<otherwise>
+					<log loggingLevel="ERROR"
+						message="RECOMMENDATOINS - Expected ArtifactResponseMessage, but received:\n${body}\n### Header: ###\n${headers[idscp2-header]}" />
+				</otherwise>
+			</choice>
+		</route>
+
+
+		<route id="recommendation-response-contract">
+			<from uri="timer://recommendationResponseContractRequest?repeatCount=1" />
+
+			<log
+				message="### RECOMMENDATION RESPONSE - Initiating request for Contract ###" />
+
+			<setProperty name="artifactUri">
+				<constant>https://catalyst.tmf/ran-share/recommendation-response</constant>
+			</setProperty>
+			<process ref="TMFArtifactInitProcessor" />
+
+			<log
+				message="### RECOMMENDATION RESPONSE - Requesting to 'request for contract' ###" />
+			<process ref="ContractRequestCreationProcessor" />
+			<to
+				uri="idscp2client://ran-regulator:29293?awaitResponse=true&amp;connectionShareId=rrConnection&amp;sslContextParameters=#sslContext&amp;useIdsMessages=true" />
+
+			<process ref="TypeExtractionProcessor" />
+			<choice>
+				<when>
+					<simple>${exchangeProperty.ids-type} == 'ContractRequestMessage'</simple>
+
+					<log
+						message="### RECOMMENDATION RESPONSE - Handling Contract Request Message ###" />
+					<setProperty name="containerUri">
+						<constant>https://hub.docker.com/layers/ashokkumarta/regulator-recommendations-feedback-processor-app/latest/images/sha256-48d986f0ecb04d7bd363988f1338318a122d83b65de17555267cc9a88d91b37d#9192</constant>
+					</setProperty>
+					<process ref="ContractRequestProcessor" />
+					<to
+						uri="idscp2client://ran-regulator:29293?awaitResponse=true&amp;connectionShareId=rrConnection&amp;sslContextParameters=#sslContext&amp;useIdsMessages=true" />
+
+					<process ref="TypeExtractionProcessor" />
+					<choice>
+						<when>
+							<simple>${exchangeProperty.ids-type} == 'ContractAgreementMessage'</simple>
+							<log
+								message="### RECOMMENDATION RESPONSE - Handling Contract Agreement Message ###" />
+							<!-- Only processing of incoming request must be performed, no reply -->
+							<process ref="ContractAgreementReceiverProcessor" />
+							<removeHeader headerName="idscp2-header" />
+							<setBody>
+								<simple>${null}</simple>
+							</setBody>
+						</when>
+						<otherwise>
+							<log loggingLevel="ERROR"
+								message="### RECOMMENDATION RESPONSE - Server expected ContractAgreementMessage but received unexpected message (otherwise branch):\n${body}\n### Header: ###\n${headers[idscp2-header]}" />
+							<removeHeader headerName="idscp2-header" />
+							<setBody>
+								<simple>${null}</simple>
+							</setBody>
+						</otherwise>
+					</choice>
+				</when>
+				<otherwise>
+					<log loggingLevel="ERROR"
+						message="### RECOMMENDATION RESPONSE - Server received unexpected message (otherwise branch):\n${body}\n### Header: ###\n${headers[idscp2-header]}" />
+					<removeHeader headerName="idscp2-header" />
+					<setBody>
+						<simple>${null}</simple>
+					</setBody>
+				</otherwise>
+			</choice>
+
+		</route>
+
+
+		<route id="recommendation-response">
+			<from
+				uri="timer://recommendationResponseTimer?fixedRate=true&amp;period=300000&amp;delay=500000" />
+
+			<log
+				message="### RECOMMENDATION RESPONSE - Initiating Usage Data exchange ###" />
+			<setProperty name="artifactUri">
+				<constant>https://catalyst.tmf/ran-share/recommendation-response</constant>
+			</setProperty>
+
+			<process ref="ArtifactRequestCreationProcessor" />
+			<log
+				message="### RECOMMENDATION RESPONSE - Sending request to 'request for recommendation response' ###" />
+
+			<to
+				uri="idscp2client://ran-regulator:29293?awaitResponse=true&amp;connectionShareId=rrConnection&amp;sslContextParameters=#sslContext&amp;useIdsMessages=true" />
+			<process ref="TypeExtractionProcessor" />
+			<choice>
+				<when>
+					<simple>${exchangeProperty.ids-type} == 'ArtifactRequestMessage'</simple>
+					<log
+						message="### RECOMMENDATION RESPONSE - Received 'request for recommendation response' ###" />
+
+					<log
+						message="RECOMMENDATION RESPONSE - Collating recommendation response from mno recommendations feedback dataapp..." />
+
+					<to uri="http://mno2-recommendation-response:9001?awaitResponse=true" />
+
+					<log
+						message="RECOMMENDATION RESPONSE - Pushing recommendation response as payload in IDS response..." />
+					<setProperty name="tmf_content_pay_load">
+						<simple>${bodyAs(String)}</simple>
+					</setProperty>
+
+					<setProperty name="artifactUri">
+						<constant>https://catalyst.tmf/ran-share/recommendation-response</constant>
+					</setProperty>
+
+					<process ref="TMFArtifactResponseProcessor" />
+					<log
+						message="RECOMMENDATION RESPONSE - Sending recommendation response to ran-regulator:\n\n${body}" />
+					<to
+						uri="idscp2client://ran-regulator:29293?connectionShareId=rrConnection&amp;sslContextParameters=#sslContext&amp;useIdsMessages=true" />
+
+					<log
+						message="RECOMMENDATION RESPONSE - Recommendation response sent to ran-regulator successfully" />
+				</when>
+				<otherwise>
+					<log loggingLevel="ERROR"
+						message="RECOMMENDATION RESPONSE - Expected ArtifactResponseMessage, but received:\n${body}\n### Header: ###\n${headers[idscp2-header]}" />
+				</otherwise>
+			</choice>
+		</route>
+
+		<route id="recommendation-incentive-contract">
+			<from
+				uri="timer://recommendationIncentiveContractRequest?repeatCount=1" />
+			<log message="### RECOMMENDATOIN INCENTIVE - Initiating contract ###" />
+
+			<setProperty name="artifactUri">
+				<constant>https://catalyst.tmf/ran-share/recommendation-incentive</constant>
+			</setProperty>
+			<process ref="TMFArtifactInitProcessor" />
+			
+			<process ref="ContractRequestCreationProcessor" />
+			<to
+				uri="idscp2client://ran-regulator:29294?awaitResponse=true&amp;connectionShareId=riConnection&amp;sslContextParameters=#sslContext&amp;useIdsMessages=true" />
+			<process ref="TypeExtractionProcessor" />
+			<choice>
+				<when>
+					<simple>${exchangeProperty.ids-type} == 'ContractResponseMessage'</simple>
+					<log
+						message="### RECOMMENDATOIN INCENTIVE - Handling Contract Response ###" />
+					<process ref="ContractResponseProcessor" />
+					<to
+						uri="idscp2client://ran-regulator:29294?connectionShareId=riConnection&amp;sslContextParameters=#sslContext&amp;useIdsMessages=true" />
+				</when>
+				<otherwise>
+					<log loggingLevel="ERROR"
+						message="RECOMMENDATOIN INCENTIVE - Expected ContractResponseMessage, but received:\n${body}\n### Header: ###\n${headers[idscp2-header]}" />
+					<removeHeader headerName="idscp2-header" />
+					<setBody>
+						<simple>${null}</simple>
+					</setBody>
+				</otherwise>
+			</choice>
+		</route>
+
+		<route id="recommendation-incentive">
+			<from
+				uri="timer://recommendationIncentiveTimer?fixedRate=true&amp;period=600000&amp;delay=600000" />
+
+			<log
+				message="RECOMMENDATOIN INCENTIVE - Requesting for recommendation incentive..." />
+			<setProperty name="artifactUri">
+				<constant>https://catalyst.tmf/ran-share/recommendation-incentive</constant>
+			</setProperty>
+
+			<process ref="ArtifactRequestCreationProcessor" />
+			<to
+				uri="idscp2client://ran-regulator:29294?awaitResponse=true&amp;connectionShareId=riConnection&amp;sslContextParameters=#sslContext&amp;useIdsMessages=true" />
+			<process ref="TypeExtractionProcessor" />
+			<choice>
+				<when>
+					<simple>${exchangeProperty.ids-type} == 'ArtifactResponseMessage'</simple>
+					<log
+						message="RECOMMENDATOIN INCENTIVE - Received recommendation incentive from ran-regulator\n\n${body}" />
+
+					<!-- Process the recommendation -->
+					<log
+						message="RECOMMENDATOIN INCENTIVE - Processing the recommendation incentive received..." />
+
+					<setHeader name="CamelHttpMethod">
+						<constant>POST</constant>
+					</setHeader>
+					<setHeader name="content-type">
+						<simple>text/plain</simple>
+					</setHeader>
+					<to
+						uri="http://mno2-recommendation-incentive-processor:9191?awaitResponse=true" />
+					<log message="RECOMMENDATOIN INCENTIVE - Proecssing complete." />
+
+					<log message="RECOMMENDATOIN INCENTIVE - Applied successfully" />
+					<!-- Set body to null after data transfer -->
+					<removeHeader headerName="idscp2-header" />
+					<setBody>
+						<simple>${null}</simple>
+					</setBody>
+				</when>
+				<otherwise>
+					<log loggingLevel="ERROR"
+						message="RECOMMENDATOIN INCENTIVE - Expected ArtifactResponseMessage, but received:\n${body}\n### Header: ###\n${headers[idscp2-header]}" />
+				</otherwise>
+			</choice>
+		</route>
+
+	</camelContext>
+</beans>
